@@ -1,14 +1,86 @@
 {% extends 'blog/base.html' %}
+{% load static %}
+
+{% block title %}{{ block.super }}{% endblock %}
+{% block description %}デフ親の子育てトークSNSです。{% endblock %}
 
 {% block content %}
-    {% for post in posts %}
+    <!--{% for post in posts %}
         <div class="post">
             <div class="date">
                 <p>published: {{ post.published_date }}</p>
             </div>
+            {% if post.image %} <!--画像挿入始め
+            <a href="{% url 'post_detail' post.id %}">
+                <img src="{{ post.image.url }}" alt="{{ post.title }}" width="40" height="40">
+            </a>
+            {% endif %} <!--画像挿入終わり
             <h2><a href="{% url 'post_detail' pk=post.pk %}">{{ post.title }}</a></h2>
+            <h4 class="user-name">@{{ post.user }}</h4>
+            <p>カテゴリー：{{ post.category }}</p>
             <p>{{ post.text|linebreaksbr }}</p>
+            <a href="{% url 'post_detail' pk=post.pk %}">Comments: {{ post.approved_comments.count }}</a>
+            <p>(閲覧数 {{ post.views }}回)</p>
         </div>
-    {% endfor %}
-{% endblock %}    
+    {% endfor %}-->
+<div class="container">
+    <div class="row">
+        <main class="col-md-8">
+            <h2 class="mb-4">新着投稿</h2>
+            {% include "blog/snippets/pagination.html" %}
+            {% include "blog/snippets/main_post_list.html" %}
+            {% include "blog/snippets/pagination.html" %}
+            <nav class="share">
+                <ul>
+                <li><a href="#" class="share-tw">
+                    <i class="fab fa-twitter"></i>
+                </a></li>
+                <li><a href="#" class="share-fb">
+                    <i class="fab fa-facebook"></i>
+                </a></li>
+                <li><a href="#" class="share-gp">
+                    <i class="fab fa-google-plus"></i>
+                </a></li>
+                <li><a href="#" class="share-line">
+                    <i class="fab fa-line"></i>
+                </a></li>
+                </ul>
+            </nav>
+        </main>
+
+        <aside class="col-md-4">
+            {% include "blog/snippets/sidebar.html" %}
+        </aside>
+    
+    <!--<ul class="pagination"> <!--{% if query %}&q={{ query }}{% endif %}検索挿入
+        
+        {% if posts.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?p={{ posts.previous_page_number }}">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
+        {% endif %}
+    
+        
+        {% for num in posts.paginator.page_range %}
+            {% if posts.number == num %}
+                <li class="page-item active"><a class="page-link" href="#!">{{ num }}</a></li>
+            {% else %}
+                <li class="page-item"><a class="page-link" href="?p={{ num }}">{{ num }}</a></li>
+            {% endif %}
+        {% endfor %}
+    
+        
+        {% if posts.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?p={{ posts.next_page_number }}">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+        {% endif %}
+    </ul>-->
+</div>
+</div>
+{% endblock content %}    
                    

@@ -1,0 +1,54 @@
+{% if queryset.has_other_pages %}
+    <nav aria-label="Comments pagination" class="mb-4">
+        <ul class="pagination justify-content-center">
+            <li class="page-item"> 
+                <a class="page-link" href="?page=1" aria-label="Top">
+                    <span aria-hidden="true">&laquo;</span>
+                    <span class="sr-only">Top</span>
+                </a>
+            </li>
+
+            {% if queryset.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ queryset.previous_page_number }}"><</a>
+            </li>
+            {% else %}
+            <li class="page-item disabled">
+                <span class="page-link"><</span>
+            </li>
+            {% endif %}
+
+            {% for page_num in queryset.paginator.page_range %}
+            {% if queryset.number == page_num %}
+                <li class="page-item active">
+                <span class="page-link">
+                    {{ page_num }}
+                    <span class="sr-only">(current)</span>
+                </span>
+                </li>
+            {% else %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_num }}">{{ page_num }}</a>
+                </li>
+            {% endif %}
+            {% endfor %}
+
+            {% if queryset.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ queryset.next_page_number }}">></a>
+            </li>
+            {% else %}
+            <li class="page-item disabled">
+                <span class="page-link">></span>
+            </li>
+            {% endif %}
+
+            <li class="page-item">
+                <a class="page-link" href="?page={{ queryset.paginator.num_pages }}" aria-label="Last">
+                    <span aria-hidden="true">&raquo;</span> 
+                    <span class="sr-only">last</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+{% endif %}

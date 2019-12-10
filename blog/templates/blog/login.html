@@ -1,0 +1,31 @@
+{% extends "blog/base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <main class="col-md-8">
+<h2>ログイン</h2>
+<br>
+<form class="form-signin" method="post">{% csrf_token %}
+    {% if form.errors %}
+        <p>ユーザー名かパスワードが間違っています。もう一度入力してください。</p>
+    {% endif %}
+
+    <label>ユーザー名</label>
+    <input name="username">
+    <br>
+    <br>
+    <label>パスワード</label>
+    <input type="password" name="password">
+    <br>
+    <br>
+    <button type="submit" class="btn btn-primary">ログイン</button>
+</form>
+
+<p>パスワード忘れた方はこちら<h5><a href="{% url 'password_reset' %}" class="btn btn-success btn-primary" >パスワードリセット</a></h5></p>
+
+</main>
+</div>
+</div>
+{% endblock %}
+                   

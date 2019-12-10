@@ -1,0 +1,128 @@
+投稿に添付ファイルボタンをつけ、ファイル内容を投稿できるように。
+
+** urls.py **
+from django.conf import settings             # 追加
+from django.conf.urls.static import static　　# 追加
+
+urlpatterns = [
+:
+]
+
+# MEDIA_ROOTを公開する（アクセス可能にする）
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) # 追加
+
+** models.py **
+class Post(models.Model):
+:
+	image = models.ImageField(upload_to='post_images/', null=True, blank=True)
+:
+
+**コマンド**
+(venv)$ pip install Pillow
+
+ **settings.py**
+ (最後に追加)
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = '/media/' #画像の保存先
+
+(モデルでは、image = models.ImageField(upload_to = 'post_images/')のようにアップロード先を指定
+してるので、Photoモデルのimageフィールドからアップロードされた画像はPhotoService/media/photosの
+中に保存。)
+
+**コマンド**
+$ python manage.py makemigrations
+$ python manage.py migrate
+
+$ python manage.py shell
+>>> from app.models import Post
+# １つ目のPhotoインスタンスを取得
+>>> post = Post.objects.all()[0]
+>>> post.image
+<ImageFieldFile: ---.jpeg>
+>>> post.image.url
+'/media/post_images/---.jpeg'
+>>> post.image.path
+'~/blog/media/post_images/---.jpeg'
+
+** views.py **
+from .models import Post　　 # 追加
+
+def post_new(request): #更新
+	if request.method == "POST":
+        form = PostForm(request.POST, request.FILES) #request.FILESでファイル添付
+        if form.is_valid():
+            post = form.save(commit=False)
+            post.author = request.user
+            #post.published_date = timezone.now()
+            post.save()
+            return redirect('post_detail', pk=post.pk)
+    else:
+        form = PostForm()
+    return render(request, 'blog/post_edit.html', {'form': form})
+    
+** post_detail.html **
+{% extends 'blog/base.html' %}
+
+{% block content %}
+    <div class="post">
+        {% if post.published_date %}
+            <div class="date">
+                {{ post.published_date }}
+            </div>
+        {% else %}
+            <a class="btn btn-default" href="{% url 'post_publish' pk=post.pk %}">Publish</a>
+        {% endif %}
+        {% if request.user == post.author %}
+                <a class="btn btn-default" href="{% url 'post_edit' pk=post.pk %}"><span class="glyphicon glyphicon-pencil"></span></a>
+                <a class="btn btn-default" href="{% url 'post_remove' pk=post.pk %}"><span class="glyphicon glyphicon-remove"></span></a>
+        {% endif %}
+        <h2>{{ post.title }}</h2>
+        <h4 class="user-name">@{{ post.author }}</h4>
+        <p>{{ post.text|linebreaksbr }}</p>
+        {% if post.image %}<!--画像挿入始まり-->
+            <a href="{% url 'post_detail' post.id %}">
+                <img src="{{ post.image.url }}" alt="{{ post.title }}" width="150" height="150">
+            </a>
+        {% endif %}<!--画像挿入終わり-->
+        </div>
+        <hr>
+        <a class="btn btn-default" href="{% url 'add_comment_to_post' pk=post.pk %}">Add comment</a>
+        {% for comment in post.comments.all %}
+            {% if user.is_authenticated or comment.approved_comment %}
+            <div class="comment">
+                <div class="date">
+                    {{ comment.created_date }}
+                    {% if not comment.approved_comment %}
+                        <a class="btn btn-default" href="{% url 'comment_remove' pk=comment.pk %}"><span class="glyphicon glyphicon-remove"></span></a>
+                        <a class="btn btn-default" href="{% url 'comment_approve' pk=comment.pk %}"><span class="glyphicon glyphicon-ok"></span></a>
+                    {% endif %}
+                </div>
+                <strong>{{ comment.author }}</strong>
+                <h5 class="user-name">@{{ comment.user}}</h5>
+                <p>{{ comment.text|linebreaks }}</p>
+            </div>
+            {% endif %}
+        {% empty %}
+            <p>No comments here yet :(</p>
+        {% endfor %}
+{% endblock %}
+
+** post_list.html **
+{% block content %}
+    {% for post in posts %}
+        <div class="post">
+            <div class="date">
+                <p>published: {{ post.published_date }}</p>
+            </div>
+            {% if post.image %} <!--画像挿入始め-->
+            <a href="{% url 'post_detail' post.id %}">
+                <img src="{{ post.image.url }}" alt="{{ post.title }}" width="40" height="40">
+            </a>
+            {% endif %} <!--画像挿入終わり-->
+            <h2><a href="{% url 'post_detail' pk=post.pk %}">{{ post.title }}</a></h2>
+            <h4 class="user-name">@{{ post.author }}</h4>
+            <p>{{ post.text|linebreaksbr }}</p>
+            <a href="{% url 'post_detail' pk=post.pk %}">Comments: {{ post.approved_comments.count }}</a>
+        </div>
+    {% endfor %}
+

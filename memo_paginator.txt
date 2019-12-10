@@ -1,0 +1,99 @@
+**console**
+
+(myvenv) ~/djangogirls$ python manage.py shell
+(InteractiveConsole)
+>>> from django.core.paginator import Paginator
+>>> objects = ['Hello', 'this', 'is ', 'Django', 'Brothers']
+>>> p = Paginator(objects, 2)
+
+# 全体のページ数を取得する
+>>> p.num_pages
+3
+
+# コンテンツの量を取得する
+>>> p.count
+5
+
+# 2ページ目を取得する（Pageオブジェクト）
+>>> page2 = p.page(2)
+>>> page2
+<Page 2 of 3>
+
+# 2ページ目のコンテンツを表示する
+>>> page2.object_list
+['is ', 'Django']
+
+# 前のページ（1ページ目）、次のページ（3ページ目）、他のページの存在の確認
+>>> page2.has_previous()
+True
+>>> page2.has_next()
+True
+>>> page2.has_other_pages()
+True
+
+# 前と後のページ番号の取得
+>>> page2.previous_page_number()
+1
+>>> page2.next_page_number()
+3
+
+**views.py**
+from django.core.paginator import Paginator #追加
+
+def post_list(request):
+    posts = Post.objects.filter(published_date__lte=timezone.now()).order_by('-published_date')
+    paginator = Paginator(posts, 5) #追加
+    p = request.GET.get('p') #追加
+    posts = paginator.get_page(p) #追加
+    return render(request, 'blog/post_list.html', {'posts': posts})
+    
+**post_list.html**
+({% endfor %}と{% endblock content %}の間に追加)
+<div class="pager">
+        <!-- 前のページへのリンク -->
+        {% if posts.has_previous %}
+            <a href="?p={{ posts.previous_page_number }}">前へ</a>
+        {% endif %}
+    
+        <!-- 現在のページ番号と全体のページ数 -->
+        <span>
+            {{ posts.number }} / {{ posts.paginator.num_pages }}
+        </span>
+    
+        <!-- 次のページへのリンク -->
+        {% if posts.has_next %}
+            <a href="?p={{ posts.next_page_number }}">次へ</a>
+        {% endif %}
+    </div>
+
+**boostrapを使ったページネーション **
+<https://narito.ninja/blog/detail/89/>に基づく
+<ul class="pagination">
+    <!-- 前へ の部分 -->
+    {% if posts.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="?p={{ posts.previous_page_number }}">
+                <span aria-hidden="true">&laquo;</span>
+            </a>
+        </li>
+    {% endif %}
+
+    <!-- 数字の部分 -->
+    {% for num in posts.paginator.page_range %}
+        {% if posts.number == num %}
+            <li class="page-item active"><a class="page-link" href="#!">{{ num }}</a></li>
+        {% else %}
+            <li class="page-item"><a class="page-link" href="?p={{ num }}">{{ num }}</a></li>
+        {% endif %}
+    {% endfor %}
+
+    <!-- 次へ の部分 -->
+    {% if posts.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?p={{ posts.next_page_number }}">
+                <span aria-hidden="true">&raquo;</span>
+            </a>
+        </li>
+    {% endif %}
+</ul>
+

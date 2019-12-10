@@ -1,0 +1,105 @@
+参考URL) Djangoメモ(31) : クラスベース汎用ビューのListViewで一覧表示とページネーション
+<https://wonderwall.hatenablog.com/entry/2018/03/31/001500>
+
+** blog/views.py **
+from django.db.models import Count
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.shortcuts import get_object_or_404, render
+from django.views.generic import ListView
+from .models import Post
+
+def post_detail(request, pk):
+    post = get_object_or_404(Post, pk=pk)
+    queryset = post.comments.all() #追加
+    page = request.GET.get('page', 1) #追加
+
+    paginator = Paginator(queryset, 5) #追加
+    
+    try: #追加
+        queryset = paginator.page(page) #追加
+    except PageNotAnInteger: #追加
+        queryset = paginator.page(1) #追加
+    except EmptyPage: #追加
+        queryset = paginator.page(paginator.num_pages) #追加
+    post.views += 1 #閲覧数
+    post.save() #閲覧数
+    return render(request, 'blog/post_detail.html', {'post': post, 'queryset': queryset}) #queryset追加
+    
+    
+** blog/urls.py **
+from . import views
+
+urlpatterns = [
+:
+path('post/<int:pk>/', views.post_detail, name='post_detail'),
+:
+]
+
+
+** blog/snippets/comments.html **
+{% for comment in queryset %} # **重要ポイント** post.comments.all -> queryset に変更(views.pyに基づく)
+
+{% if user.is_authenticated or comment.approved_comment %} 
+<div class="card mb-3" style="max-width: 50rem;">
+    <div class="card-body">
+        {% if not comment.approved_comment %}
+            <a class="btn btn-default" href="{% url 'comment_remove' pk=comment.pk %}"><span class="btn btn-primary">削除</span></a>
+            <a class="btn btn-default" href="{% url 'comment_approve' pk=comment.pk %}"><span class="btn btn-primary">公開</span></a>
+        {% endif %}
+    <h5>{{ comment.author }}</h5>
+    <p class="user-name">@{{ comment.user }}</p>
+    <p>{{ comment.text|linebreaks }}</p>
+    <p>{{ comment.timestamp }}</p>
+    </div>
+</div>
+{% endif %}
+{% empty %}
+<p>No comments here yet :(</p>
+
+{% endfor %}
+
+
+** blog/snippets/comment_pagination.html ** 重要ポイント ** querysetを入れる(views.pyに基づく）
+{% if queryset.has_other_pages %}
+    <nav aria-label="Comments pagination" class="mb-4">
+        <ul class="pagination">
+            {% if queryset.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ queryset.previous_page_number }}">Previous</a>
+            </li>
+            {% else %}
+            <li class="page-item disabled">
+                <span class="page-link">Previous</span>
+            </li>
+            {% endif %}
+
+            {% for page_num in queryset.paginator.page_range %}
+            {% if queryset.number == page_num %}
+                <li class="page-item active">
+                <span class="page-link">
+                    {{ page_num }}
+                    <span class="sr-only">(current)</span>
+                </span>
+                </li>
+            {% else %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_num }}">{{ page_num }}</a>
+                </li>
+            {% endif %}
+            {% endfor %}
+
+            {% if queryset.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ queryset.next_page_number }}">Next</a>
+            </li>
+            {% else %}
+            <li class="page-item disabled">
+                <span class="page-link">Next</span>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+{% endif %}
+
+
+

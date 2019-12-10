@@ -1,0 +1,82 @@
+https://zerofromlight.com/blogs/detail/21/
+
+djangogirls/blog/models.py
+**models.py**
+from django.db import models
+
+class Post(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    title = models.CharField(max_length=200)
+    text = models.TextField()
+    image = models.ImageField(upload_to='post_images/', null=True, blank=True)
+    category = models.ForeignKey(Category, on_delete=models.PROTECT)
+    #tags = models.ManyToManyField(Tag, blank=True)
+    created_date = models.DateTimeField(auto_now_add=True) #default=timezone.now
+    published_date = models.DateTimeField(blank=True, null=True)
+    views = models.PositiveIntegerField(default=0) #追加
+    
+    def __str__(self):
+        return self.title
+        
+**コマンド**
+$ python manage.py makemigrations
+$ python manage.py migrate
+
+**views.py**
+from django.shortcuts import render, get_object_or_404
+from .models import Blog
+
+def post_detail(request, pk):
+    post = get_object_or_404(Post, pk=pk)
+    post.views += 1 #閲覧数
+    post.save() #閲覧数
+    return render(request, 'blog/post_detail.html', {'post': post})
+    
+**post_list.html**
+{% extends 'blog/base.html' %}
+
+{% block content %}
+    {% for post in posts %}
+        <div class="post">
+            <div class="date">
+                <p>published: {{ post.published_date }}</p>
+            </div>
+            {% if post.image %} <!--画像挿入始め-->
+            <a href="{% url 'post_detail' post.id %}">
+                <img src="{{ post.image.url }}" alt="{{ post.title }}" width="40" height="40">
+            </a>
+            {% endif %} <!--画像挿入終わり-->
+            <h2><a href="{% url 'post_detail' pk=post.pk %}">{{ post.title }}</a></h2>
+            <h4 class="user-name">@{{ post.user }}</h4>
+            <p>カテゴリー：{{ post.category }}</p>
+            <p>{{ post.text|linebreaksbr }}</p>
+            <a href="{% url 'post_detail' pk=post.pk %}">Comments: {{ post.approved_comments.count }}</a>
+            <p>(閲覧数 {{ post.views }}回)</p> #閲覧数
+        </div>
+    {% endfor %}
+    ：
+    
+＜閲覧数ランキング＞
+**views.py**
+def post_list(request):
+    posts = Post.objects.filter(published_date__lte=timezone.now()).order_by('-published_date')
+    paginator = Paginator(posts, 5)
+    p = request.GET.get('p')
+    posts = paginator.get_page(p)
+    post_views = Post.objects.order_by('-views')[:5] #閲覧数[:n]でn数まで表示
+    return render(request, 'blog/post_list.html', {'posts': posts, 'post_views': post_views}) #閲覧数post_views
+    
+**sidebar.html**
+:
+<div>
+  <h4>閲覧数ランキング</h4>
+  <ul>
+    {% for post in post_views %}
+    <li>
+      <a href="{% url 'post_detail' pk=post.pk %}">{{ post.title }}</a>
+      <p>(閲覧数 {{ post.views }}回)</p>
+    </li>
+    {% endfor %}
+  </ul>
+</div>
+        

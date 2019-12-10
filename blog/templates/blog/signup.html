@@ -1,0 +1,36 @@
+{% extends "blog/base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <main class="col-md-8">
+<h2>ユーザー登録</h2>
+<br>
+<form method="post" action="{% url 'signup' %}">{% csrf_token %}
+    <label>ニックネーム</label>
+    {{ form.username }}
+    {{ form.username.errors }}
+    <br>
+    <br>
+    <label>パスワード</label>
+    {{ form.password1 }}
+    {{ form.password1.errors }}
+    <br>
+    <br>
+    <label>パスワード（確認）</label>
+    {{ form.password2 }}
+    {{ form.password2.errors }}
+    <br>
+    <br>
+    <button type="submit" class="btn btn-primary">登録する</button>
+</form>
+
+<p>登録済みの方はこちらをクリック</p>
+<p><a href="{% url 'login' %}" class="btn btn-primary">ログイン</a></p>
+
+</main>
+</div>
+</div>
+
+{% endblock %}
+                   

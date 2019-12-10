@@ -1,0 +1,48 @@
+commentにuserを追加したい
+
+１）models.pyにuser追加
+（一番上に追加。）
+from django.contrib.auth.models import User
+（class Commentの中にtextの次、created_dateの前に追加）
+user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+
+２）models.pyを保存する
+
+３）プロジェクトディレクト内にて
+（仮想環境でない状態でファイルを削除）
+rm -d -r db.sqlite3
+rm -d -r app/migrations
+
+python manage.py migrate
+（モデルがデータベース内に入れた）
+４）マイグレーションする
+（仮想環境下）
+python manage.py makemigrations blog
+python manage.py migrate blog
+５）superuser （サイトの全てを管理するユーザー）を作る
+(myvenv) ~/djangogirls$ python manage.py createsuperuser
+
+Username: 
+Email address: 
+Password:
+Password (again):
+Superuser created successfully.
+
+６）コメントがサイト上に出てこない
+views.pyで
+def add_comment_to_post内に
+comment.user = request.user 追加したら解決。
+
+def add_comment_to_post(request, pk):
+    post = get_object_or_404(Post, pk=pk)
+    if request.method == "POST":
+        form = CommentForm(request.POST)
+        if form.is_valid():
+            comment = form.save(commit=False)
+            comment.post = post
+            comment.user = request.user #追加
+            comment.save()
+            return redirect('post_detail', pk=post.pk)
+    else:
+        form = CommentForm()
+    return render(request, 'blog/add_comment_to_post.html', {'form': form})

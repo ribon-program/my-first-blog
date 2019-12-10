@@ -1,0 +1,29 @@
+{% load static %}
+
+<div class="card mb-3">
+  <div class="card-header">
+    カテゴリ
+  </div>
+  <ul class="list-group list-group-flush">
+      {% for category in category_list %}
+      <li class="list-group-item d-flex justify-content-between align-items-center">
+        <a href="{% url 'post_category' category %}">{{ category }}</a>
+        <span class="badge badge-primary badge-pill">{{ category.num_posts }}</span>
+      </li>
+      {% endfor %}
+    </ul>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    PVランキング
+  </div>
+  <ul class="list-group list-group-flush">
+    {% for post in post_views %}
+    <li class="list-group-item d-flex justify-content-between align-items-center">
+      <a href="{% url 'post_detail' pk=post.pk %}">{{ forloop.counter }}.　{{ post.title }}</a>
+      <span class="bage badge-primary badge-pill">{{ post.views }}</span>
+    </li>
+    {% endfor %}
+  </ul>
+

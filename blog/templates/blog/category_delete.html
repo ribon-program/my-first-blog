@@ -1,0 +1,6 @@
+<p>以下のカテゴリーを削除します</p>
+<p>{{ category.title }}</p>
+<form action="" method="POST">
+    {% csrf_token %}
+    <button type="submit">削除</button>
+</form>

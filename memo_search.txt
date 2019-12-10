@@ -1,0 +1,107 @@
+**models.py**
+class Post(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    title = models.CharField(max_length=200)
+    text = models.TextField()
+    image = models.ImageField(upload_to='post_images/', null=True, blank=True)
+    category = models.ForeignKey(Category, on_delete=models.PROTECT)
+    #tags = models.ManyToManyField(Tag, blank=True)
+    created_date = models.DateTimeField(auto_now_add=True) #default=timezone.now
+    published_date = models.DateTimeField(blank=True, null=True)
+    
+    def publish(self):
+        self.published_date = timezone.now()
+        self.save()
+
+    def __str__(self):
+        return self.title
+
+    def approved_comments(self):
+        return self.comments.filter(approved_comment=True)
+        
+**views.py**
+from django.db.models import Q
+from django.views.generic import CreateView, UpdateView, ListView, DeleteView
+
+class PostListView(ListView):
+    template_name = "blog/search_result.html"
+    model = Post
+
+    #Serch
+    def get_queryset(self):
+        result = super(PostListView, self).get_queryset()
+        query = self.request.GET.get('q')
+
+        if query:
+            result = Post.objects.filter(
+                Q(title__icontains=query) |
+                Q(text__icontains=query)
+                )
+        return result
+        
+**urls.py**
+rom django.urls import path
+from . import views
+from django.contrib.auth import views as auth_views
+
+urlpatterns = [
+:
+path('search/', views.PostListView.as_view(), name='search_result')
+]
+
+**base.html**
+<html>
+	<head>
+	:
+	</head>
+	<body>
+		<div class="page-header">
+            {% if user.is_authenticated %}
+                <a href="{% url 'post_new' %}" class="top-menu"><span class="glyphicon glyphicon-plus"></span></a>
+                <a href="{% url 'post_draft_list' %}" class="top-menu"><span class="glyphicon glyphicon-edit"></span></a>
+                <p class="top-menu">Hello {{ user.username }} <small>(<a href="{% url 'logout' %}">Log out</a>)</small></p>    
+            {% else %}
+                <a href="{% url 'signup' %}" class="top-menu"><span class="glyphicon glyphicon-log-in"></span></a>
+                <a href="{% url 'login' %}" class="top-menu"><span class="glyphicon glyphicon-lock"></span></a>
+            {% endif %}
+            <h1><a href="/">Django Girls Blog</a></h1>
+            
+            <!--検索機能始まり-->
+            <form class="form-inline my-2 my-lg-0" action="{% url 'search_result' %}" method="get" accept-charset="utf-8">
+                <input class="form-control mr-sm-2" type="search" name="q" placeholder="検索...">
+                <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+            </form>
+            <!--検索機能終わり-->
+            
+        </div>
+        <div class="content container">
+                <div class="row">
+                    <div class="col-md-8">
+                        {% block content %}
+                        {% endblock %}
+                    </div>
+                </div>
+        </div>
+        
+    </body>
+</html>
+
+**search_result.html**
+{% extends 'blog/base.html' %}
+
+{% block content %}
+
+<div class="container">
+  {% for post in post_list %}
+  <ul>
+    <li>
+      <h2><a href="{% url 'post_detail' post.id %}">{{ post.title }}</a></h2>
+      <p>Comments: {{ post.approved_comments.count }}</p>
+    </li>
+  </ul>
+    
+  {% endfor %}
+</div>
+
+
+{% endblock %}

@@ -1,0 +1,11 @@
+{% extends 'blog/base.html' %}
+
+{% block content %}
+
+<h2 class="user-name">@{{ user.username }}</h2>
+
+{% for post in posts %}
+    <a href="{% url 'blog:post_detail' post.id %}"></a>
+{% endfor %}
+
+{% endblock %}

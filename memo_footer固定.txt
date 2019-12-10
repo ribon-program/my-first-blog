@@ -1,0 +1,38 @@
+**bodyタグに追加**
+
+body {
+:
+	display: flex;
+	flex-flow: column;
+	min-height: 100vh;
+}
+
+**mainタグにスタイル適用**
+
+main {
+:
+	flex: 1
+}
+
+**html**
+<!DOCTYPE html>
+<html>
+<head>
+    <title>フッターを画面最下部に表示</title>
+</head>
+<body>
+    <header>
+        ヘッダー
+    </header>
+
+    <main>
+        コンテンツ
+    </main>
+
+    <footer>
+        フッター
+    </footer>
+</body>
+</html>
+
+

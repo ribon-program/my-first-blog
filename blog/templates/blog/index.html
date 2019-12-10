@@ -1,0 +1,24 @@
+{% extends 'blog/base.html' %}
+
+{% block content %}
+<div class="container">
+        <div class="row">
+            <main class="col-md-8">
+{% if category %}
+    <h2>カテゴリー：{{ category.title }}</h2>
+{% endif %}
+
+{% for posts in post %}
+<ul>
+    <li>
+        <h2><a href="{% url 'post_detail' posts.id %}">{{ posts.title }}</a></h2>
+        <p>Comments: {{ posts.approved_comments.count }}</p>
+        <p>{{ posts.text|linebreaksbr }}</p>
+    </li>
+</ul>
+{% endfor %}
+</main>
+</div>
+</div>
+
+{% endblock %}

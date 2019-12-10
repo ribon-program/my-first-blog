@@ -1,0 +1,5 @@
+{% for category in category_list %}
+<p>{{ category.title }} ({{ category.num_posts }})</p>
+{% empty %}
+<li>カテゴリはありません。</li>
+{% endfor %}

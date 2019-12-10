@@ -1,0 +1,33 @@
+<!-- blog/templates/blog/search_post.html -->
+{% extends 'blog/base.html' %}
+
+{% block description %}検索ワード「{% if query %}{{ query }}{% endif %}」での検索結果ページです。{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <main class="col-md-8">
+
+            <h1 class="mb-4">「{% if query %}{{ query }}{% endif %}」の検索結果</h1>
+            <p class="text-right">{{ page_obj.start_index }}-{{ page_obj.end_index }}件（{{ paginator.count }}件）</p>
+            {% include "blog/snippets/search_pagination.html" %}
+  {% for post in post_list %}
+  <div class="card mb-3">
+      <div class="card-body">
+      <h2><a href="{% url 'post_detail' post.id %}">{{ post.title }}</a></h2>
+      <h6 class="card-subtitle mb-2 text-muted">@{{ post.user }}</h6>
+      <p>{{ post.views }}ビュー ({{ post.approved_comments.count }}コメント)</p>
+      <i class="fas fa-edit"></i> {{ post.published_date }}
+      </div>
+  </div>
+  {% endfor %}
+
+<!--ページネーション -->
+{% include "blog/snippets/search_pagination.html" %}  
+
+</main>
+</div>
+</div>
+
+
+{% endblock %}

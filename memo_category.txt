@@ -1,0 +1,144 @@
+**blog/models.py**
+
+from django.db import models
+
+"""カテゴリー"""
+class Category(models.Model):
+    title = models.CharField(max_length=20)
+    """self.titleとすることでadmin管理画面にてインスタンス変数として表示される"""
+    def __str__(self):
+        return self.title
+        
+class Post(models.Model):
+    :
+    category = models.ForeignKey(Category, on_delete=models.PROTECT)
+    :
+    
+    def __str__(self):
+        return self.title
+        
+**blog/admin.py**
+
+from django.contrib import admin
+from .models import Post, Comment, ContentImage, Category
+
+class CategoryAdmin(admin.ModelAdmin):
+    list_display=('id','title')
+    list_display_links=('id','title')
+:
+
+admin.site.register(Category, CategoryAdmin)
+:
+
+**ターミナル**
+python manage.py makemigrations
+
+python manage.py migrate
+
+**djangogirls/mysite/urls.py**
+from django.contrib import admin
+from django.urls import path, include　←追記
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('', include('blog.urls')),　←追記
+]
+
+**blog/urls.py**
+from django.urls import path
+from . import views
+
+urlpatterns = [
+        path('', views.post_list, name='post_list'),　←一覧
+        path('post/<str:category>/', views.post_category, name='post_category'),　←カテゴリ
+        :
+]
+
+**blog/views.py**
+from django.shortcuts import render, redirect, get_object_or_404
+from .models import Post, Commit, Category
+:
+
+#一覧表示(カテゴリー結果表示投稿一覧）
+def index(request):
+    post = Post.objects.order_by('title')
+    return render(request, 'post/index.html', {'post': post})
+
+def post_category(request, category):
+    # titleがURLの文字列と一致するCategoryインスタンスを取得
+    category = Category.objects.get(title=category)
+    # 取得したCategoryに属するPost一覧を取得
+    post = Post.objects.filter(category=category).order_by('title')
+    return render(request, 'blog/index.html', {'post': post, 'category': category})
+    
+**blog/context_processor.py**
+#カテゴリのタイトルを取得
+from .models import Category
+
+
+def common(request):
+    context = {
+        'category_list': Category.objects.all(),
+    }
+    return context
+    
+**blog/settings.py**
+#作成したPythonファイルをsettings.pyに読み込ませる。
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+                'blog.context_processors.common',  # 追加
+            ],
+        },
+    },
+]
+
+context_processors.pyファイル内の「category_list」をDjangoのテンプレートタグにて使用することができる。
+あとはtemplates/blogディレクトリのsnippets/sidebar.html, blog/index.htmlを作成
+
+**templates/blog/snippets/sidebar.html**
+<div class="card mb-3">
+    <div class="card-header">
+      カテゴリ
+    </div>
+    <ul class="list-group list-group-flush">
+      {% for category in category_list %}
+      <li class="list-group-item d-flex justify-content-between align-items-center">
+        <a href="{% url 'post_category' category %}">{{ category }}</a>
+      </li>
+      {% endfor %}
+    </ul>
+</div>
+
+**templates/blog/post_list.htmlにカテゴリ一覧(sidebar.html)挿入**
+<aside class="col-md-4">
+	{% include "blog/snippets/sidebar.html" %}
+</aside>
+
+**(カテゴリーに合う投稿一覧)templates/blog/index.html**
+{% extends 'blog/base.html' %}
+
+{% block content %}
+
+{% if category %}
+    <h2>カテゴリー：{{ category.title }}</h2>
+{% endif %}
+
+{% for posts in post %}
+<ul>
+    <li>
+        <h2><a href="{% url 'post_detail' posts.id %}">{{ posts.title }}</a></h2>
+        <p>{{ posts.text|linebreaksbr }}</p>
+    </li>
+</ul>
+{% endfor %}
+
+{% endblock %}
