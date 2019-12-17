@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django_cleanup', #画像削除
     'blog.apps.BlogConfig',
+    'send_mail',
     #'bootstrap4',
     #'widget_tweaks', #テンプレートでフォームをレンダリングするときにCSSクラスやHTML属性を変更できるモジュール
 ]
@@ -133,4 +134,10 @@ LOGIN_URL='blog:login'
 LOGOUT_REDIRECT_URL = '/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+DEFAULT_FROM_EMAIL = 'deafoyatalk@gmail.com'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST_USER = 'deafoyatalk@gmail.com'  # あなたのアカウント
+EMAIL_HOST_PASSWORD = 'czzceszhsoihatwj'  # 2段階認証のアプリパスワードが確実
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True

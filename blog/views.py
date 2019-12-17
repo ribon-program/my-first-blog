@@ -9,12 +9,11 @@ from django.contrib.auth import authenticate, login #登録後自動ログイン
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger #ページネーション
 from django.contrib.auth.models import User #ユーザーページ
 from django.views.generic import UpdateView, ListView, DeleteView, DetailView
-from django.views.generic.edit import CreateView
+from django.views.generic.edit import CreateView, FormView #Formview メール送付
 from django.urls import reverse_lazy
 from django.db.models import  Count, Q #検索
 from django.contrib.auth.views import PasswordChangeView, PasswordChangeDoneView, PasswordResetView, PasswordResetDoneView, PasswordResetConfirmView, PasswordResetCompleteView
 from django.views import generic
-
 
 def post_list(request):
     posts = Post.objects.filter(published_date__lte=timezone.now()).order_by('-published_date')
@@ -278,6 +277,7 @@ class PasswordChange(PasswordChangeView):
 class PasswordChangeDone(PasswordChangeDoneView):
     template_name = 'register/password_change_done.html'
 
+
 #パスワード変更用URLの送付ページ
 class PasswordReset(PasswordResetView):
     subject_template_name = 'register/mail_template/password_reset/subject.txt'
@@ -286,16 +286,18 @@ class PasswordReset(PasswordResetView):
     form_class = MyPasswordResetForm
     success_url = reverse_lazy('password_reset_done')
 
+
 #パスワード変更用URLを送りましたページ
 class PasswordResetDone(PasswordResetDoneView):
     template_name = 'register/password_reset_done.html'
 
 
+#新パスワード入力ページ
 class PasswordResetConfirm(PasswordResetConfirmView):
     form_class = MySetPasswordForm
-    success_url = reverse_lazy('register/password_reset_complete')
+    success_url = reverse_lazy('password_reset_complete')
     template_name = 'register/password_reset_confirm.html'
 
-
+#新パスワード設定しましたページ
 class PasswordResetComplete(PasswordResetCompleteView):
     template_name = 'register/password_reset_complete.html'

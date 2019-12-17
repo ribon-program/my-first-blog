@@ -6,6 +6,9 @@ from django.contrib.auth.forms import PasswordChangeForm, PasswordResetForm, Set
 
 from django.contrib.auth import get_user_model
 
+from django.conf import settings
+from django.core.mail import BadHeaderError, send_mail
+from django.http import HttpResponse
 
 
 class PostForm(forms.ModelForm):
@@ -28,25 +31,25 @@ class CategoryForm(forms.ModelForm):
         model = Category
         fields = ('title',)
 
+#"""パスワード変更フォーム"""
 class MyPasswordChangeForm(PasswordChangeForm):
-    """パスワード変更フォーム"""
-
+    
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         for field in self.fields.values():
             field.widget.attrs['class'] = 'form-control'
 
+ #"""パスワード忘れたときのフォーム"""
 class MyPasswordResetForm(PasswordResetForm):
-    """パスワード忘れたときのフォーム"""
-
+   
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         for field in self.fields.values():
             field.widget.attrs['class'] = 'form-control'
 
 
+#"""パスワード再設定用フォーム(パスワード忘れて再設定)"""
 class MySetPasswordForm(SetPasswordForm):
-    """パスワード再設定用フォーム(パスワード忘れて再設定)"""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
